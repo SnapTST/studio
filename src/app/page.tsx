@@ -6,11 +6,12 @@ import {
   BookText,
   FileImage,
   Loader2,
-  Save,
+  Download,
   Printer,
   Sparkles,
   Layers,
   XCircle,
+  Upload,
 } from 'lucide-react';
 
 import { generateTestPaper } from '@/ai/flows/generate-test-paper';
@@ -27,7 +28,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> =>
@@ -139,25 +139,22 @@ export default function Home() {
       setIsLoading(false);
     }
   };
-
-  const handleSaveLocally = () => {
+  
+  const handleDownload = () => {
     if (!generatedTest) return;
-    try {
-      localStorage.setItem(`snaptest-${Date.now()}`, generatedTest);
-      toast({
-        title: 'Saved Locally',
-        description:
-          "The test paper has been saved in your browser's local storage.",
+    const blob = new Blob([generatedTest], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'test-paper.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+        title: 'Downloaded',
+        description: 'The test paper has been saved as a text file.',
       });
-    } catch (error) {
-      console.error('Error saving to local storage:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Save Failed',
-        description:
-          'Could not save the test paper. Your browser storage might be full.',
-      });
-    }
   };
 
   const handlePrint = () => {
@@ -187,15 +184,12 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="image-upload" className="font-bold">
+              <div className="space-y-4">
+                <Label className="font-bold">
                   Upload Images
                 </Label>
-                 <div
-                  className="relative flex h-56 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card hover:border-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
+                <div>
+                   <input
                     ref={fileInputRef}
                     id="image-upload"
                     type="file"
@@ -204,39 +198,38 @@ export default function Home() {
                     onChange={handleImageChange}
                     multiple
                   />
-                  {imagePreviews.length > 0 ? (
-                    <Carousel className="w-full h-full max-w-xs" opts={{loop: true}}>
-                      <CarouselContent>
-                        {imagePreviews.map((src, index) => (
-                          <CarouselItem key={index} className="relative w-full h-full">
-                             <Image
-                                src={src}
-                                alt={`Selected preview ${index + 1}`}
-                                layout="fill"
-                                objectFit="contain"
-                                className="rounded-lg p-2"
-                              />
-                              <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={(e) => { e.stopPropagation(); removeImage(index); }}>
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                       {imagePreviews.length > 1 && (
-                        <>
-                          <CarouselPrevious className="left-2" />
-                          <CarouselNext className="right-2" />
-                        </>
-                       )}
-                    </Carousel>
-                  ) : (
-                    <div className="text-center text-muted-foreground">
-                      <FileImage className="mx-auto h-12 w-12" />
-                      <p>Click to upload or drag and drop</p>
-                      <p className="text-xs">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-                  )}
+                  <Button onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2" />
+                    Upload Images
+                  </Button>
                 </div>
+
+                {imagePreviews.length > 0 && (
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {imagePreviews.map((src, index) => (
+                      <div key={index} className="relative aspect-square">
+                        <Image
+                          src={src}
+                          alt={`Selected preview ${index + 1}`}
+                          layout="fill"
+                          objectFit="cover"
+                          className="rounded-lg"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(index);
+                          }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
@@ -275,7 +268,7 @@ export default function Home() {
                 2. Generated Test Paper
               </CardTitle>
               <CardDescription>
-                Preview your test below. You can save it or export to PDF.
+                Preview your test below. You can download it or export to PDF.
               </CardDescription>
             </CardHeader>
             <CardContent className="min-h-[300px]">
@@ -308,11 +301,11 @@ export default function Home() {
             <CardFooter className="flex flex-col-reverse sm:flex-row justify-end gap-2">
               <Button
                 variant="outline"
-                onClick={handleSaveLocally}
+                onClick={handleDownload}
                 disabled={!generatedTest || isLoading}
               >
-                <Save className="mr-2 h-4 w-4" />
-                Save Locally
+                <Download className="mr-2 h-4 w-4" />
+                Download (.txt)
               </Button>
               <Button
                 onClick={handlePrint}
