@@ -4,7 +4,6 @@ import { useState, useRef, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import {
   BookText,
-  FileImage,
   Loader2,
   Download,
   Printer,
@@ -26,7 +25,6 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 // Helper to convert file to Base64
@@ -157,11 +155,6 @@ export default function Home() {
       });
   };
 
-  const handlePrint = () => {
-    if (!generatedTest) return;
-    window.print();
-  };
-
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="flex items-center justify-center gap-2 p-4 border-b">
@@ -265,56 +258,38 @@ export default function Home() {
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">
-                2. Generated Test Paper
+                2. Download Your Test
               </CardTitle>
               <CardDescription>
-                Preview your test below. You can download it or export to PDF.
+                Once generated, your test paper will be available for download.
               </CardDescription>
             </CardHeader>
-            <CardContent className="min-h-[300px]">
+            <CardContent className="min-h-[300px] flex items-center justify-center">
+              {!generatedTest && !isLoading && (
+                  <div className="text-center text-muted-foreground">
+                    <p>Your download link will appear here.</p>
+                  </div>
+              )}
               {isLoading && (
-                <div className="space-y-4">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-12 w-full mt-4" />
-                  <Skeleton className="h-6 w-1/2 mt-4" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
+                 <div className="text-center text-muted-foreground">
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin" />
+                    <p className="mt-2">Generating your test...</p>
+                  </div>
               )}
               {generatedTest && (
-                <div
-                  id="printable-area"
-                  className="prose dark:prose-invert max-w-none rounded-md border bg-secondary/30 p-4 h-96 overflow-y-auto"
-                >
-                  <pre className="font-body whitespace-pre-wrap text-sm">
-                    {generatedTest}
-                  </pre>
-                </div>
-              )}
-              {!isLoading && !generatedTest && (
-                <div className="flex h-full items-center justify-center text-center text-muted-foreground">
-                  <p>Your generated test will appear here.</p>
+                <div className="text-center">
+                    <p className="text-lg font-medium mb-4">Your test paper is ready!</p>
+                    <Button
+                        onClick={handleDownload}
+                        disabled={!generatedTest || isLoading}
+                        size="lg"
+                    >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download Test
+                    </Button>
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={handleDownload}
-                disabled={!generatedTest || isLoading}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download (.txt)
-              </Button>
-              <Button
-                onClick={handlePrint}
-                disabled={!generatedTest || isLoading}
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Export to PDF
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </main>
