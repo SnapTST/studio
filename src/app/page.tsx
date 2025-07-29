@@ -10,6 +10,7 @@ import {
   Layers,
   XCircle,
   Upload,
+  Printer,
 } from 'lucide-react';
 
 import { generateTestPaper } from '@/ai/flows/generate-test-paper';
@@ -28,6 +29,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> =>
@@ -92,6 +94,7 @@ export default function Home() {
   const formatFileInputRef = useRef<HTMLInputElement>(null);
   const [formatImageFile, setFormatImageFile] = useState<File | null>(null);
   const [formatImagePreview, setFormatImagePreview] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -188,6 +191,7 @@ export default function Home() {
 
     setIsLoading(true);
     setGeneratedTest(null);
+    setShowPreview(false);
 
     try {
       const photoDataUris = await Promise.all(imageFiles.map(toBase64));
@@ -202,6 +206,7 @@ export default function Home() {
         formatPhotoDataUri,
       });
       setGeneratedTest(result.testPaper);
+      setShowPreview(true);
       toast({
         title: 'Success!',
         description: 'Your test paper has been generated.',
@@ -219,6 +224,10 @@ export default function Home() {
     }
   };
   
+  const handlePrint = () => {
+    window.print();
+  }
+
   const handleDownload = () => {
     if (!generatedTest) return;
     const blob = new Blob([generatedTest], { type: 'text/plain;charset=utf-8' });
@@ -235,6 +244,38 @@ export default function Home() {
         description: 'The test paper has been saved as a text file.',
       });
   };
+
+  if (showPreview) {
+    return (
+      <div className="min-h-screen bg-background p-4 md:p-8">
+          <Card className="max-w-4xl mx-auto shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="font-headline text-2xl">Generated Test Paper</CardTitle>
+                    <CardDescription>Preview, print, or download your test paper.</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setShowPreview(false)}>Back to Editor</Button>
+                    <Button onClick={handlePrint}>
+                      <Printer className="mr-2 h-4 w-4" />
+                      Print
+                    </Button>
+                     <Button onClick={handleDownload}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                  </div>
+              </CardHeader>
+              <CardContent>
+                  <ScrollArea className="h-[70vh] rounded-md border p-4" id="printable-area">
+                      <pre className="whitespace-pre-wrap font-sans text-sm">{generatedTest}</pre>
+                  </ScrollArea>
+              </CardContent>
+          </Card>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -433,43 +474,6 @@ export default function Home() {
               </CardFooter>
             </Card>
 
-            {/* Output Card */}
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="font-headline text-2xl">
-                  2. Download Your Test
-                </CardTitle>
-                <CardDescription>
-                  Once generated, your test paper will be available for download.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="min-h-[200px] flex items-center justify-center">
-                {!generatedTest && !isLoading && (
-                    <div className="text-center text-muted-foreground">
-                      <p>Your download link will appear here.</p>
-                    </div>
-                )}
-                {isLoading && (
-                  <div className="text-center text-muted-foreground">
-                      <Loader2 className="mx-auto h-8 w-8 animate-spin" />
-                      <p className="mt-2">Generating your test...</p>
-                    </div>
-                )}
-                {generatedTest && (
-                  <div className="text-center">
-                      <p className="text-lg font-medium mb-4">Your test paper is ready!</p>
-                      <Button
-                          onClick={handleDownload}
-                          disabled={!generatedTest || isLoading}
-                          size="lg"
-                      >
-                          <Download className="mr-2 h-4 w-4" />
-                          Download Test
-                      </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
           <div className="hidden lg:flex justify-center items-start">
             <Image
