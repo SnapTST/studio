@@ -86,7 +86,10 @@ const generateTestPaperFlow = ai.defineFlow(
     let finalExamFormat = input.examFormat;
     if (input.formatPhotoDataUri) {
         const formatText = await extractTextFromImage(input.formatPhotoDataUri);
-        finalExamFormat = `${finalExamFormat ? `${finalExamFormat}\n\n` : ''}Also, use the following as a template for the exam format:\n${formatText}`;
+        const formatTemplate = `Also, use the following as a template for the exam format:\n${formatText}`;
+        finalExamFormat = finalExamFormat 
+          ? `${finalExamFormat}\n\n${formatTemplate}` 
+          : formatTemplate;
     }
 
     const {output} = await generateTestPaperPrompt({
