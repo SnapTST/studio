@@ -41,6 +41,13 @@ const QUESTION_TYPES = [
   { id: 'mcq', label: 'Multiple Choice' },
   { id: 'short-answer', label: 'Short Answer' },
   { id: 'essay', label: 'Essay' },
+  { id: 'fill-in-the-blanks', label: 'Fill in the Blanks' },
+  { id: 'true-false', label: 'True/False' },
+  { id: 'matching', label: 'Matching' },
+  { id: 'definitions', label: 'Definitions' },
+  { id: 'diagram', label: 'Diagram Questions' },
+  { id: 'problem-solving', label: 'Problem Solving' },
+  { id: 'case-study', label: 'Case Study' },
 ];
 
 
