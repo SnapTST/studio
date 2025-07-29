@@ -19,6 +19,8 @@ const GenerateTestPaperInputSchema = z.object({
       "A photo of a textbook page, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   marks: z.number().describe('The number of marks the test paper should be worth.'),
+  examFormat: z.string().optional().describe('Instructions on the format of the exam paper.'),
+  questionTypes: z.array(z.string()).optional().describe('A list of question types to include.'),
 });
 export type GenerateTestPaperInput = z.infer<typeof GenerateTestPaperInputSchema>;
 
@@ -36,6 +38,8 @@ const generateTestPaperPrompt = ai.definePrompt({
   input: {schema: z.object({
     extractedText: z.string(),
     marks: z.number(),
+    examFormat: z.string().optional(),
+    questionTypes: z.array(z.string()).optional(),
   })},
   output: {schema: GenerateTestPaperOutputSchema},
   prompt: `You are an expert educator, skilled in creating effective test papers.
@@ -46,7 +50,20 @@ const generateTestPaperPrompt = ai.definePrompt({
   Text: {{{extractedText}}}
   Marks: {{{marks}}}
   
+  {{#if examFormat}}
+  Please follow these formatting instructions:
+  {{{examFormat}}}
+  {{/if}}
+
+  {{#if questionTypes}}
+  Ensure the test paper includes a variety of the following question types:
+  {{#each questionTypes}}
+  - {{this}}
+  {{/each}}
+  {{else}}
   Ensure the test paper is well-formatted and includes a variety of question types, such as multiple choice, short answer, and essay questions.
+  {{/if}}
+
   Your response should only include the test paper. Do not include any additional information or explanation.
   `,
 });
@@ -67,6 +84,8 @@ const generateTestPaperFlow = ai.defineFlow(
     const {output} = await generateTestPaperPrompt({
       extractedText,
       marks: input.marks,
+      examFormat: input.examFormat,
+      questionTypes: input.questionTypes,
     });
     return output!;
   }

@@ -6,7 +6,6 @@ import {
   BookText,
   Loader2,
   Download,
-  Printer,
   Sparkles,
   Layers,
   XCircle,
@@ -25,6 +24,8 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 // Helper to convert file to Base64
@@ -36,11 +37,20 @@ const toBase64 = (file: File): Promise<string> =>
     reader.onerror = reject;
   });
 
+const QUESTION_TYPES = [
+  { id: 'mcq', label: 'Multiple Choice' },
+  { id: 'short-answer', label: 'Short Answer' },
+  { id: 'essay', label: 'Essay' },
+];
+
+
 export default function Home() {
   const { toast } = useToast();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [marks, setMarks] = useState('10');
+  const [examFormat, setExamFormat] = useState('');
+  const [questionTypes, setQuestionTypes] = useState<string[]>([]);
   const [generatedTest, setGeneratedTest] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +102,12 @@ export default function Home() {
     setImagePreviews(newPreviews);
   }
 
+  const handleQuestionTypeChange = (checked: boolean, typeLabel: string) => {
+    setQuestionTypes(prev => 
+      checked ? [...prev, typeLabel] : prev.filter(t => t !== typeLabel)
+    );
+  };
+
   const handleGenerateTest = async () => {
     if (imageFiles.length === 0) {
       toast({
@@ -119,6 +135,8 @@ export default function Home() {
       const result = await generateTestPaper({
         photoDataUris,
         marks: parseInt(marks, 10),
+        examFormat,
+        questionTypes,
       });
       setGeneratedTest(result.testPaper);
       toast({
@@ -140,7 +158,7 @@ export default function Home() {
   
   const handleDownload = () => {
     if (!generatedTest) return;
-    const blob = new Blob([generatedTest], { type: 'text/plain' });
+    const blob = new Blob([generatedTest], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -183,7 +201,7 @@ export default function Home() {
                   1. Create Your Test
                 </CardTitle>
                 <CardDescription>
-                  Upload one or more textbook pages and set the total marks.
+                  Upload textbook pages, set marks, and customize the format.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -234,18 +252,47 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
-                  <Input
-                    id="marks-input"
-                    type="number"
-                    value={marks}
-                    onChange={(e) => setMarks(e.target.value)}
-                    placeholder="E.g. 25"
-                    min="1"
-                    className="w-full max-w-xs"
-                  />
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
+                    <Input
+                      id="marks-input"
+                      type="number"
+                      value={marks}
+                      onChange={(e) => setMarks(e.target.value)}
+                      placeholder="E.g. 25"
+                      min="1"
+                      className="w-full max-w-xs"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold">Question Types</Label>
+                    <div className="flex flex-wrap gap-4 items-center">
+                      {QUESTION_TYPES.map(type => (
+                        <div key={type.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={type.id}
+                            onCheckedChange={(checked) => handleQuestionTypeChange(checked as boolean, type.label)}
+                          />
+                          <Label htmlFor={type.id} className="font-normal">{type.label}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="exam-format-input" className="font-bold">Exam Format (Optional)</Label>
+                    <Textarea
+                      id="exam-format-input"
+                      value={examFormat}
+                      onChange={(e) => setExamFormat(e.target.value)}
+                      placeholder="e.g., 'Section A contains 10 multiple choice questions. Section B contains 5 short answer questions...'"
+                      className="min-h-[100px]"
+                    />
+                </div>
+
               </CardContent>
               <CardFooter>
                 <Button
@@ -274,7 +321,7 @@ export default function Home() {
                   Once generated, your test paper will be available for download.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="min-h-[300px] flex items-center justify-center">
+              <CardContent className="min-h-[200px] flex items-center justify-center">
                 {!generatedTest && !isLoading && (
                     <div className="text-center text-muted-foreground">
                       <p>Your download link will appear here.</p>
