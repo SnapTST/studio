@@ -13,8 +13,8 @@ import {z} from 'genkit';
 import { extractTextFromImage } from '@/ai/services/ocr-service';
 
 const GenerateTestPaperInputSchema = z.object({
-  photoDataUri: z
-    .string()
+  photoDataUris: z
+    .array(z.string())
     .describe(
       "A photo of a textbook page, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
@@ -58,7 +58,11 @@ const generateTestPaperFlow = ai.defineFlow(
     outputSchema: GenerateTestPaperOutputSchema,
   },
   async input => {
-    const extractedText = await extractTextFromImage(input.photoDataUri);
+    const extractedTexts = await Promise.all(
+      input.photoDataUris.map(uri => extractTextFromImage(uri))
+    );
+    const extractedText = extractedTexts.join('\n\n');
+
 
     const {output} = await generateTestPaperPrompt({
       extractedText,

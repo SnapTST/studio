@@ -117,9 +117,9 @@ export default function Home() {
     setGeneratedTest(null);
 
     try {
-      const photoDataUri = await toBase64(imageFiles[0]); // Using first image for now
+      const photoDataUris = await Promise.all(imageFiles.map(toBase64));
       const result = await generateTestPaper({
-        photoDataUri,
+        photoDataUris,
         marks: parseInt(marks, 10),
       });
       setGeneratedTest(result.testPaper);
