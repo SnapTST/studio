@@ -294,8 +294,14 @@ export default function Home() {
         </div>
       </main>
       <div className="pb-16" /> {/* Spacer for the ad banner */}
-      <div className="fixed bottom-0 left-0 w-full bg-card/80 backdrop-blur-sm p-4 text-center text-lg text-muted-foreground border-t">
-        Ad Banner Placeholder
+      <div className="fixed bottom-0 left-0 w-full flex justify-center bg-card/80 backdrop-blur-sm p-2 border-t">
+        <Image
+            src="https://placehold.co/728x90.png"
+            alt="Advertisement"
+            width={728}
+            height={90}
+            data-ai-hint="advertisement banner"
+        />
       </div>
     </div>
   );
