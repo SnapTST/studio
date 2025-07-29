@@ -21,7 +21,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="/print.css" media="print" />
       </head>
-      <body className={cn("font-body antialiased", "min-h-screen bg-background")}>
+      <body className={cn("font-body antialiased", "min-h-screen bg-background")} suppressHydrationWarning>
         {children}
         <Toaster />
       </body>
