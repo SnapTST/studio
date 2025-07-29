@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { extractTextFromImage } from '@/ai/services/ocr-service';
 
 const GenerateTestPaperInputSchema = z.object({
   photoDataUri: z
@@ -30,11 +31,12 @@ export async function generateTestPaper(input: GenerateTestPaperInput): Promise<
   return generateTestPaperFlow(input);
 }
 
-import { extractTextFromImage } from '@/ai/services/ocr-service';
-
 const generateTestPaperPrompt = ai.definePrompt({
   name: 'generateTestPaperPrompt',
-  input: {schema: GenerateTestPaperInputSchema},
+  input: {schema: z.object({
+    extractedText: z.string(),
+    marks: z.number(),
+  })},
   output: {schema: GenerateTestPaperOutputSchema},
   prompt: `You are an expert educator, skilled in creating effective test papers.
 
@@ -59,10 +61,9 @@ const generateTestPaperFlow = ai.defineFlow(
     const extractedText = await extractTextFromImage(input.photoDataUri);
 
     const {output} = await generateTestPaperPrompt({
-      ...input,
       extractedText,
+      marks: input.marks,
     });
     return output!;
   }
 );
-
