@@ -10,6 +10,7 @@ import {
   Printer,
   Sparkles,
   Layers,
+  XCircle,
 } from 'lucide-react';
 
 import { generateTestPaper } from '@/ai/flows/generate-test-paper';
@@ -26,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> =>
@@ -39,40 +40,66 @@ const toBase64 = (file: File): Promise<string> =>
 
 export default function Home() {
   const { toast } = useToast();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [marks, setMarks] = useState('10');
   const [generatedTest, setGeneratedTest] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
       // Basic validation for image type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          variant: 'destructive',
-          title: 'Invalid File Type',
-          description: 'Please upload an image file (e.g., PNG, JPG, WEBP).',
-        });
-        return;
+      for (const file of newFiles) {
+        if (!file.type.startsWith('image/')) {
+          toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload only image files (e.g., PNG, JPG, WEBP).',
+          });
+          return;
+        }
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      
+      const currentFiles = [...imageFiles, ...newFiles];
+      setImageFiles(currentFiles);
+
+      const newPreviews: string[] = [];
+      const filePromises = newFiles.map(file => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            newPreviews.push(reader.result as string);
+            resolve("");
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(filePromises).then(() => {
+        setImagePreviews([...imagePreviews, ...newPreviews]);
+      });
     }
   };
 
+  const removeImage = (index: number) => {
+    const newFiles = [...imageFiles];
+    newFiles.splice(index, 1);
+    setImageFiles(newFiles);
+
+    const newPreviews = [...imagePreviews];
+    newPreviews.splice(index, 1);
+    setImagePreviews(newPreviews);
+  }
+
   const handleGenerateTest = async () => {
-    if (!imageFile) {
+    if (imageFiles.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'No Image Selected',
-        description: 'Please upload an image to generate a test paper.',
+        title: 'No Images Selected',
+        description: 'Please upload at least one image to generate a test paper.',
       });
       return;
     }
@@ -90,7 +117,7 @@ export default function Home() {
     setGeneratedTest(null);
 
     try {
-      const photoDataUri = await toBase64(imageFile);
+      const photoDataUri = await toBase64(imageFiles[0]); // Using first image for now
       const result = await generateTestPaper({
         photoDataUri,
         marks: parseInt(marks, 10),
@@ -156,16 +183,16 @@ export default function Home() {
                 1. Create Your Test
               </CardTitle>
               <CardDescription>
-                Upload a textbook page and select the total marks.
+                Upload one or more textbook pages and set the total marks.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="image-upload" className="font-bold">
-                  Upload Image
+                  Upload Images
                 </Label>
-                <div
-                  className="relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card hover:border-primary transition-colors"
+                 <div
+                  className="relative flex h-56 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card hover:border-primary transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <input
@@ -175,15 +202,33 @@ export default function Home() {
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageChange}
+                    multiple
                   />
-                  {imagePreview ? (
-                    <Image
-                      src={imagePreview}
-                      alt="Selected preview"
-                      layout="fill"
-                      objectFit="contain"
-                      className="rounded-lg"
-                    />
+                  {imagePreviews.length > 0 ? (
+                    <Carousel className="w-full h-full max-w-xs" opts={{loop: true}}>
+                      <CarouselContent>
+                        {imagePreviews.map((src, index) => (
+                          <CarouselItem key={index} className="relative w-full h-full">
+                             <Image
+                                src={src}
+                                alt={`Selected preview ${index + 1}`}
+                                layout="fill"
+                                objectFit="contain"
+                                className="rounded-lg p-2"
+                              />
+                              <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 rounded-full" onClick={(e) => { e.stopPropagation(); removeImage(index); }}>
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                       {imagePreviews.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </>
+                       )}
+                    </Carousel>
                   ) : (
                     <div className="text-center text-muted-foreground">
                       <FileImage className="mx-auto h-12 w-12" />
@@ -209,7 +254,7 @@ export default function Home() {
             <CardFooter>
               <Button
                 onClick={handleGenerateTest}
-                disabled={!imageFile || isLoading}
+                disabled={imageFiles.length === 0 || isLoading}
                 className="w-full font-bold"
                 size="lg"
               >
@@ -280,7 +325,8 @@ export default function Home() {
           </Card>
         </div>
       </main>
-      <div className="fixed bottom-0 left-0 w-full bg-card/80 backdrop-blur-sm p-2 text-center text-xs text-muted-foreground border-t">
+      <div className="pb-16" /> {/* Spacer for the ad banner */}
+      <div className="fixed bottom-0 left-0 w-full bg-card/80 backdrop-blur-sm p-4 text-center text-lg text-muted-foreground border-t">
         Ad Banner Placeholder
       </div>
     </div>
