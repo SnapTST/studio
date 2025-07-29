@@ -214,7 +214,7 @@ export default function Home() {
                           <Image
                             src={src}
                             alt={`Selected preview ${index + 1}`}
-                            layout="fill"
+                            fill
                             objectFit="cover"
                             className="rounded-lg"
                           />
