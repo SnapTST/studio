@@ -21,6 +21,9 @@ const GenerateTestPaperInputSchema = z.object({
   marks: z.number().describe('The number of marks the test paper should be worth.'),
   examFormat: z.string().optional().describe('Instructions on the format of the exam paper.'),
   questionTypes: z.array(z.string()).optional().describe('A list of question types to include.'),
+  formatPhotoDataUri: z.string().optional().describe(
+    "A photo of a previous exam paper to be used as a format template, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+  ),
 });
 export type GenerateTestPaperInput = z.infer<typeof GenerateTestPaperInputSchema>;
 
@@ -80,11 +83,16 @@ const generateTestPaperFlow = ai.defineFlow(
     );
     const extractedText = extractedTexts.join('\n\n');
 
+    let finalExamFormat = input.examFormat;
+    if (input.formatPhotoDataUri) {
+        const formatText = await extractTextFromImage(input.formatPhotoDataUri);
+        finalExamFormat = `${finalExamFormat ? `${finalExamFormat}\n\n` : ''}Also, use the following as a template for the exam format:\n${formatText}`;
+    }
 
     const {output} = await generateTestPaperPrompt({
       extractedText,
       marks: input.marks,
-      examFormat: input.examFormat,
+      examFormat: finalExamFormat,
       questionTypes: input.questionTypes,
     });
     return output!;

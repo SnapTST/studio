@@ -61,6 +61,9 @@ export default function Home() {
   const [generatedTest, setGeneratedTest] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formatFileInputRef = useRef<HTMLInputElement>(null);
+  const [formatImageFile, setFormatImageFile] = useState<File | null>(null);
+  const [formatImagePreview, setFormatImagePreview] = useState<string | null>(null);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -99,6 +102,22 @@ export default function Home() {
     }
   };
 
+  const handleFormatImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid File Type',
+          description: 'Please upload an image file for the format.',
+        });
+        return;
+      }
+      setFormatImageFile(file);
+      toBase64(file).then(setFormatImagePreview);
+    }
+  }
+
   const removeImage = (index: number) => {
     const newFiles = [...imageFiles];
     newFiles.splice(index, 1);
@@ -107,6 +126,11 @@ export default function Home() {
     const newPreviews = [...imagePreviews];
     newPreviews.splice(index, 1);
     setImagePreviews(newPreviews);
+  }
+
+  const removeFormatImage = () => {
+    setFormatImageFile(null);
+    setFormatImagePreview(null);
   }
 
   const handleQuestionTypeChange = (checked: boolean, typeLabel: string) => {
@@ -139,11 +163,14 @@ export default function Home() {
 
     try {
       const photoDataUris = await Promise.all(imageFiles.map(toBase64));
+      const formatPhotoDataUri = formatImageFile ? await toBase64(formatImageFile) : undefined;
+
       const result = await generateTestPaper({
         photoDataUris,
         marks: parseInt(marks, 10),
         examFormat,
         questionTypes,
+        formatPhotoDataUri,
       });
       setGeneratedTest(result.testPaper);
       toast({
@@ -214,7 +241,7 @@ export default function Home() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <Label className="font-bold">
-                    Upload Images
+                    Upload Textbook Pages
                   </Label>
                   <div>
                     <input
@@ -295,9 +322,53 @@ export default function Home() {
                       id="exam-format-input"
                       value={examFormat}
                       onChange={(e) => setExamFormat(e.target.value)}
-                      placeholder="e.g., 'Section A contains 10 multiple choice questions. Section B contains 5 short answer questions...'"
+                      placeholder="e.g., 'Section A contains 10 multiple choice questions...' or upload a format image below."
                       className="min-h-[100px]"
                     />
+                    <div className="space-y-4">
+                        <Label className="font-bold">
+                            Upload Format Image
+                        </Label>
+                        <div>
+                            <input
+                            ref={formatFileInputRef}
+                            id="format-image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFormatImageChange}
+                            />
+                            <Button variant="secondary" onClick={() => formatFileInputRef.current?.click()}>
+                                <Upload className="mr-2" />
+                                Upload Format Image
+                            </Button>
+                        </div>
+
+                        {formatImagePreview && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <div className="relative aspect-square">
+                                <Image
+                                src={formatImagePreview}
+                                alt="Format preview"
+                                fill
+                                objectFit="cover"
+                                className="rounded-lg"
+                                />
+                                <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeFormatImage();
+                                }}
+                                >
+                                <XCircle className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
               </CardContent>
