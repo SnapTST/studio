@@ -23,10 +23,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui/radio-group';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -76,6 +73,15 @@ export default function Home() {
         variant: 'destructive',
         title: 'No Image Selected',
         description: 'Please upload an image to generate a test paper.',
+      });
+      return;
+    }
+    
+    if (!marks || parseInt(marks, 10) <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Marks',
+        description: 'Please enter a valid number for total marks.',
       });
       return;
     }
@@ -188,20 +194,16 @@ export default function Home() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="font-bold">Total Marks</Label>
-                <RadioGroup
-                  defaultValue="10"
+                <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
+                <Input
+                  id="marks-input"
+                  type="number"
                   value={marks}
-                  onValueChange={setMarks}
-                  className="flex gap-4"
-                >
-                  {['10', '20', '50'].map((value) => (
-                    <div key={value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={value} id={`r-${value}`} />
-                      <Label htmlFor={`r-${value}`}>{value} Marks</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+                  onChange={(e) => setMarks(e.target.value)}
+                  placeholder="E.g. 25"
+                  min="1"
+                  className="w-full max-w-xs"
+                />
               </div>
             </CardContent>
             <CardFooter>
