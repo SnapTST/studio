@@ -19,6 +19,7 @@ const GenerateTestPaperInputSchema = z.object({
       "A photo of a textbook page, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   marks: z.number().describe('The number of marks the test paper should be worth.'),
+  language: z.string().optional().describe('The language for the test paper.'),
   examFormat: z.string().optional().describe('Instructions on the format of the exam paper.'),
   questionTypes: z.array(z.string()).optional().describe('A list of question types to include.'),
   formatPhotoDataUri: z.string().optional().describe(
@@ -41,6 +42,7 @@ const generateTestPaperPrompt = ai.definePrompt({
   input: {schema: z.object({
     extractedText: z.string(),
     marks: z.number(),
+    language: z.string().optional(),
     examFormat: z.string().optional(),
     questionTypes: z.array(z.string()).optional(),
   })},
@@ -49,6 +51,12 @@ const generateTestPaperPrompt = ai.definePrompt({
 
   Based on the provided text, create a test paper with questions that assess the student's understanding of the material.
   The test paper should be worth a total of {{marks}} marks. Structure the test paper in a way that the marks are appropriately distributed to each question.
+  
+  {{#if language}}
+  The test paper must be in the following language: {{{language}}}.
+  {{else}}
+  The test paper must be in English.
+  {{/if}}
 
   Text: {{{extractedText}}}
   Marks: {{{marks}}}
@@ -95,6 +103,7 @@ const generateTestPaperFlow = ai.defineFlow(
     const {output} = await generateTestPaperPrompt({
       extractedText,
       marks: input.marks,
+      language: input.language,
       examFormat: finalExamFormat,
       questionTypes: input.questionTypes,
     });

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> =>
@@ -50,12 +51,39 @@ const QUESTION_TYPES = [
   { id: 'case-study', label: 'Case Study' },
 ];
 
+const LANGUAGES = [
+    { value: 'English', label: 'English' },
+    { value: 'Assamese', label: 'Assamese' },
+    { value: 'Bengali', label: 'Bengali' },
+    { value: 'Bodo', label: 'Bodo' },
+    { value: 'Dogri', label: 'Dogri' },
+    { value: 'Gujarati', label: 'Gujarati' },
+    { value: 'Hindi', label: 'Hindi' },
+    { value: 'Kannada', label: 'Kannada' },
+    { value: 'Kashmiri', label: 'Kashmiri' },
+    { value: 'Konkani', label: 'Konkani' },
+    { value: 'Maithili', label: 'Maithili' },
+    { value: 'Malayalam', label: 'Malayalam' },
+    { value: 'Manipuri', label: 'Manipuri' },
+    { value: 'Marathi', label: 'Marathi' },
+    { value: 'Nepali', label: 'Nepali' },
+    { value: 'Odia', label: 'Odia' },
+    { value: 'Punjabi', label: 'Punjabi' },
+    { value: 'Sanskrit', label: 'Sanskrit' },
+    { value: 'Santali', label: 'Santali' },
+    { value: 'Sindhi', label: 'Sindhi' },
+    { value: 'Tamil', label: 'Tamil' },
+    { value: 'Telugu', label: 'Telugu' },
+    { value: 'Urdu', label: 'Urdu' },
+];
+
 
 export default function Home() {
   const { toast } = useToast();
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [marks, setMarks] = useState('10');
+  const [language, setLanguage] = useState('English');
   const [examFormat, setExamFormat] = useState('');
   const [questionTypes, setQuestionTypes] = useState<string[]>([]);
   const [generatedTest, setGeneratedTest] = useState<string | null>(null);
@@ -168,6 +196,7 @@ export default function Home() {
       const result = await generateTestPaper({
         photoDataUris,
         marks: parseInt(marks, 10),
+        language,
         examFormat,
         questionTypes,
         formatPhotoDataUri,
@@ -301,6 +330,21 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="language-select" className="font-bold">Language</Label>
+                    <Select value={language} onValueChange={setLanguage}>
+                        <SelectTrigger id="language-select" className="w-full max-w-xs">
+                            <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {LANGUAGES.map((lang) => (
+                                <SelectItem key={lang.value} value={lang.value}>
+                                    {lang.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
                     <Label className="font-bold">Question Types</Label>
                     <div className="flex flex-wrap gap-4 items-center">
                       {QUESTION_TYPES.map(type => (
