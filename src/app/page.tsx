@@ -163,6 +163,15 @@ export default function Home() {
           SnapTest AI Paper Generator
         </h1>
       </header>
+      <div className="flex justify-center p-2 border-b bg-card">
+          <Image
+              src="https://placehold.co/468x60.png"
+              alt="Advertisement"
+              width={468}
+              height={60}
+              data-ai-hint="advertisement banner"
+          />
+      </div>
       <main className="flex-1 p-4 md:p-8">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Input Card */}
