@@ -173,133 +173,145 @@ export default function Home() {
           />
       </div>
       <main className="flex-1 p-4 md:p-8">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Input Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                <BookText />
-                1. Create Your Test
-              </CardTitle>
-              <CardDescription>
-                Upload one or more textbook pages and set the total marks.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <Label className="font-bold">
-                  Upload Images
-                </Label>
-                <div>
-                   <input
-                    ref={fileInputRef}
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                    multiple
-                  />
-                  <Button onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="mr-2" />
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 grid gap-8 content-start">
+            {/* Input Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                  <BookText />
+                  1. Create Your Test
+                </CardTitle>
+                <CardDescription>
+                  Upload one or more textbook pages and set the total marks.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="font-bold">
                     Upload Images
-                  </Button>
-                </div>
-
-                {imagePreviews.length > 0 && (
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {imagePreviews.map((src, index) => (
-                      <div key={index} className="relative aspect-square">
-                        <Image
-                          src={src}
-                          alt={`Selected preview ${index + 1}`}
-                          layout="fill"
-                          objectFit="cover"
-                          className="rounded-lg"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 rounded-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
-                <Input
-                  id="marks-input"
-                  type="number"
-                  value={marks}
-                  onChange={(e) => setMarks(e.target.value)}
-                  placeholder="E.g. 25"
-                  min="1"
-                  className="w-full max-w-xs"
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={handleGenerateTest}
-                disabled={imageFiles.length === 0 || isLoading}
-                className="w-full font-bold"
-                size="lg"
-              >
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                {isLoading ? 'Generating...' : 'Generate Test Paper'}
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Output Card */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl">
-                2. Download Your Test
-              </CardTitle>
-              <CardDescription>
-                Once generated, your test paper will be available for download.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="min-h-[300px] flex items-center justify-center">
-              {!generatedTest && !isLoading && (
-                  <div className="text-center text-muted-foreground">
-                    <p>Your download link will appear here.</p>
-                  </div>
-              )}
-              {isLoading && (
-                 <div className="text-center text-muted-foreground">
-                    <Loader2 className="mx-auto h-8 w-8 animate-spin" />
-                    <p className="mt-2">Generating your test...</p>
-                  </div>
-              )}
-              {generatedTest && (
-                <div className="text-center">
-                    <p className="text-lg font-medium mb-4">Your test paper is ready!</p>
-                    <Button
-                        onClick={handleDownload}
-                        disabled={!generatedTest || isLoading}
-                        size="lg"
-                    >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Test
+                  </Label>
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                      multiple
+                    />
+                    <Button onClick={() => fileInputRef.current?.click()}>
+                      <Upload className="mr-2" />
+                      Upload Images
                     </Button>
+                  </div>
+
+                  {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {imagePreviews.map((src, index) => (
+                        <div key={index} className="relative aspect-square">
+                          <Image
+                            src={src}
+                            alt={`Selected preview ${index + 1}`}
+                            layout="fill"
+                            objectFit="cover"
+                            className="rounded-lg"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 rounded-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(index);
+                            }}
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="marks-input" className="font-bold">Total Marks</Label>
+                  <Input
+                    id="marks-input"
+                    type="number"
+                    value={marks}
+                    onChange={(e) => setMarks(e.target.value)}
+                    placeholder="E.g. 25"
+                    min="1"
+                    className="w-full max-w-xs"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={handleGenerateTest}
+                  disabled={imageFiles.length === 0 || isLoading}
+                  className="w-full font-bold"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  {isLoading ? 'Generating...' : 'Generate Test Paper'}
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Output Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl">
+                  2. Download Your Test
+                </CardTitle>
+                <CardDescription>
+                  Once generated, your test paper will be available for download.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="min-h-[300px] flex items-center justify-center">
+                {!generatedTest && !isLoading && (
+                    <div className="text-center text-muted-foreground">
+                      <p>Your download link will appear here.</p>
+                    </div>
+                )}
+                {isLoading && (
+                  <div className="text-center text-muted-foreground">
+                      <Loader2 className="mx-auto h-8 w-8 animate-spin" />
+                      <p className="mt-2">Generating your test...</p>
+                    </div>
+                )}
+                {generatedTest && (
+                  <div className="text-center">
+                      <p className="text-lg font-medium mb-4">Your test paper is ready!</p>
+                      <Button
+                          onClick={handleDownload}
+                          disabled={!generatedTest || isLoading}
+                          size="lg"
+                      >
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Test
+                      </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="hidden lg:flex justify-center items-start">
+            <Image
+                src="https://placehold.co/160x600.png"
+                alt="Advertisement"
+                width={160}
+                height={600}
+                data-ai-hint="advertisement banner"
+                className="sticky top-8"
+            />
+          </div>
         </div>
       </main>
       <div className="pb-16" /> {/* Spacer for the ad banner */}
