@@ -46,7 +46,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
+          # Upload only the build output directory
           path: './out'
       - name: Deploy to GitHub Pages
         id: deployment
