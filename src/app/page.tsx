@@ -487,7 +487,10 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <div className="pb-16" /> {/* Spacer for the ad banner */}
+      <footer className="w-full border-t p-4 text-center text-xs text-muted-foreground">
+        <p>© {new Date().getFullYear()} Prashant Pandey. All Rights Reserved.</p>
+      </footer>
+      <div className="pb-28" /> {/* Spacer for the ad banner */}
       <div className="fixed bottom-0 left-0 w-full flex justify-center bg-card/80 backdrop-blur-sm p-2 border-t">
         <Image
             src="https://placehold.co/728x90.png"
